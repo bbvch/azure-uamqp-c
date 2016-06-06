@@ -184,7 +184,7 @@ else()
     set(socketlistener_c_files)
 endif()
 
-add_library(uamqp
+add_library(uamqp SHARED
     ${uamqp_c_files}
     ${uamqp_h_files}
     ${wsio_c_files}
