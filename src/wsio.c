@@ -933,7 +933,7 @@ void wsio_dowork(CONCRETE_IO_HANDLE ws_io)
 		{
             /* Codes_SRS_WSIO_01_061: [wsio_dowork shall service the libwebsockets context by calling lws_service and passing as argument the context obtained in wsio_open.] */
             /* Codes_SRS_WSIO_01_112: [The timeout for lws_service shall be 0.] */
-			(void)lws_service(wsio_instance->ws_context, 0);
+			(void)lws_service(wsio_instance->ws_context, 10);
 		}
 	}
 }
