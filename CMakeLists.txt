@@ -7,10 +7,10 @@ project(uamqp)
 #making a nice global variable to know if we are on linux or not.
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(LINUX TRUE)
-	#on Linux, enable valgrind
-	#these commands (MEMORYCHECK...) need to apear BEFORE include(CTest) or they will not have any effect
-	find_program(MEMORYCHECK_COMMAND valgrind)	
-	set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1 --track-origins=yes")
+    #on Linux, enable valgrind
+    #these commands (MEMORYCHECK...) need to apear BEFORE include(CTest) or they will not have any effect
+    find_program(MEMORYCHECK_COMMAND valgrind)	
+    set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1 --track-origins=yes")
 endif()
 
 include (CTest)
@@ -45,7 +45,7 @@ if(${use_wsio})
     add_subdirectory(libwebsockets)
 endif()
 
-add_subdirectory(azure-c-shared-utility/c)
+add_subdirectory(azure-c-shared-utility)
 
 enable_testing()
 #if any compiler has a command line switch called "OFF" then it will need special care
@@ -92,7 +92,7 @@ endmacro(compileAsC11)
 
 option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" ON)
 
-include_directories(inc ${SHARED_UTIL_INC_FOLDER})
+include_directories(${CMAKE_CURRENT_LIST_DIR}/inc ${SHARED_UTIL_INC_FOLDER})
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
@@ -110,32 +110,32 @@ if(WIN32)
 endif()
 
 set(uamqp_h_files
-    ./inc/amqp_definitions.h
-    ./inc/amqp_frame_codec.h
-    ./inc/amqp_management.h
-    ./inc/amqp_types.h
-    ./inc/amqpalloc.h
-    ./inc/amqpvalue.h
-    ./inc/amqpvalue_to_string.h
-    ./inc/cbs.h
-    ./inc/connection.h
-    ./inc/consolelogger.h
-    ./inc/frame_codec.h
-    ./inc/header_detect_io.h
-    ./inc/link.h
-    ./inc/logger.h
-    ./inc/message.h
-    ./inc/message_receiver.h
-    ./inc/message_sender.h
-    ./inc/messaging.h
-    ./inc/sasl_anonymous.h
-    ./inc/sasl_frame_codec.h
-    ./inc/sasl_mechanism.h
-    ./inc/sasl_mssbcbs.h
-    ./inc/sasl_plain.h
-    ./inc/saslclientio.h
-    ./inc/session.h
-    ./inc/socket_listener.h
+    ./inc/azure_uamqp_c/amqp_definitions.h
+    ./inc/azure_uamqp_c/amqp_frame_codec.h
+    ./inc/azure_uamqp_c/amqp_management.h
+    ./inc/azure_uamqp_c/amqp_types.h
+    ./inc/azure_uamqp_c/amqpalloc.h
+    ./inc/azure_uamqp_c/amqpvalue.h
+    ./inc/azure_uamqp_c/amqpvalue_to_string.h
+    ./inc/azure_uamqp_c/cbs.h
+    ./inc/azure_uamqp_c/connection.h
+    ./inc/azure_uamqp_c/consolelogger.h
+    ./inc/azure_uamqp_c/frame_codec.h
+    ./inc/azure_uamqp_c/header_detect_io.h
+    ./inc/azure_uamqp_c/link.h
+    ./inc/azure_uamqp_c/logger.h
+    ./inc/azure_uamqp_c/message.h
+    ./inc/azure_uamqp_c/message_receiver.h
+    ./inc/azure_uamqp_c/message_sender.h
+    ./inc/azure_uamqp_c/messaging.h
+    ./inc/azure_uamqp_c/sasl_anonymous.h
+    ./inc/azure_uamqp_c/sasl_frame_codec.h
+    ./inc/azure_uamqp_c/sasl_mechanism.h
+    ./inc/azure_uamqp_c/sasl_mssbcbs.h
+    ./inc/azure_uamqp_c/sasl_plain.h
+    ./inc/azure_uamqp_c/saslclientio.h
+    ./inc/azure_uamqp_c/session.h
+    ./inc/azure_uamqp_c/socket_listener.h
 )
 
 set(uamqp_c_files
@@ -166,7 +166,7 @@ set(uamqp_c_files
 
 if(${use_wsio})
     set(wsio_h_files
-        ./inc/wsio.h
+        ./inc/azure_uamqp_c/wsio.h
     )
     set(wsio_c_files
         ./src/wsio.c
@@ -193,7 +193,9 @@ add_library(uamqp SHARED
     )
 
 add_subdirectory(samples)
-add_subdirectory(tests)
+if (NOT ${skip_unittests})
+    add_subdirectory(tests)
+endif()
 
 # The following "set" statetement exports across the project a global variable
 set(UAMQP_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "This is the include folder for UAMQP" FORCE)

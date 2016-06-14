@@ -8,15 +8,15 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "link.h"
-#include "session.h"
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
-#include "amqpalloc.h"
-#include "amqp_frame_codec.h"
-#include "consolelogger.h"
-#include "xlogging.h"
-#include "list.h"
+#include "azure_uamqp_c/link.h"
+#include "azure_uamqp_c/session.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_uamqp_c/consolelogger.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/list.h"
 
 #define DEFAULT_LINK_CREDIT 10000
 
@@ -351,11 +351,27 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 	}
 	else if (is_detach_type_by_descriptor(descriptor))
 	{
-		if (send_detach_frame(link_instance, NULL) != 0)
-		{
-			/* error */
-		}
-	}
+        DETACH_HANDLE detach;
+
+        /* Respond with ack */
+        (void)send_detach_frame(link_instance, NULL);
+
+        /* Set link state appropriately based on whether we received detach condition */
+        if (amqpvalue_get_detach(performative, &detach) == 0)
+        {
+            ERROR_HANDLE error;
+            if (detach_get_error(detach, &error) == 0)
+            {
+                error_destroy(error);
+
+                set_link_state(link_instance, LINK_STATE_ERROR);
+            }
+            else
+            {
+                set_link_state(link_instance, LINK_STATE_DETACHED);
+            }
+        }
+    }
 }
 
 static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, role role)
@@ -451,6 +467,10 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
 	else if (new_session_state == SESSION_STATE_DISCARDING)
 	{
 		set_link_state(link_instance, LINK_STATE_DETACHED);
+	}
+	else if (new_session_state == SESSION_STATE_ERROR)
+	{
+		set_link_state(link_instance, LINK_STATE_ERROR);
 	}
 }
 
@@ -592,6 +612,7 @@ void link_destroy(LINK_HANDLE link)
 {
 	if (link != NULL)
 	{
+		link->on_link_state_changed = NULL;
 		link_detach(link);
 
 		session_destroy_link_endpoint(link->link_endpoint);
@@ -620,9 +641,9 @@ void link_destroy(LINK_HANDLE link)
 			amqpalloc_free(link->name);
 		}
 
-        if (link->attach_properties != NULL)
+		if (link->attach_properties != NULL)
         {
-            amqpvalue_destroy(link->attach_properties);
+			amqpvalue_destroy(link->attach_properties);
         }
 
 		amqpalloc_free(link);
@@ -848,11 +869,13 @@ int link_detach(LINK_HANDLE link)
 	}
 	else
 	{
-		if ((link->link_state == LINK_STATE_HALF_ATTACHED) ||
+		if (link->link_state == LINK_STATE_ERROR)
+		{
+			result = __LINE__;
+		}
+		else if ((link->link_state == LINK_STATE_HALF_ATTACHED) ||
 			(link->link_state == LINK_STATE_ATTACHED))
 		{
-			link->on_link_state_changed = NULL;
-
 			if (send_detach(link, NULL) != 0)
 			{
 				result = __LINE__;
@@ -860,12 +883,14 @@ int link_detach(LINK_HANDLE link)
 			else
 			{
 				set_link_state(link, LINK_STATE_DETACHED);
+				link->on_link_state_changed = NULL;
 				result = 0;
 			}
 		}
 		else
 		{
 			set_link_state(link, LINK_STATE_DETACHED);
+			link->on_link_state_changed = NULL;
 			result = 0;
 		}
 	}
@@ -883,7 +908,8 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 	}
 	else
 	{
-		if (link->role != role_sender)
+		if ((link->role != role_sender) ||
+            (link->link_state != LINK_STATE_ATTACHED))
 		{
 			result = LINK_TRANSFER_ERROR;
 		}
@@ -961,10 +987,15 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 								{
 								default:
 								case SESSION_SEND_TRANSFER_ERROR:
+									list_remove(link->pending_deliveries, delivery_instance_list_item);
+									amqpalloc_free(pending_delivery);
 									result = LINK_TRANSFER_ERROR;
 									break;
 
 								case SESSION_SEND_TRANSFER_BUSY:
+									/* Ensure we remove from list again since sender will attempt to transfer again on flow on */
+									list_remove(link->pending_deliveries, delivery_instance_list_item);
+									amqpalloc_free(pending_delivery);
 									result = LINK_TRANSFER_BUSY;
 									break;
 

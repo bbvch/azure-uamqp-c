@@ -6,9 +6,9 @@
 #include <crtdbg.h>
 #endif
 #include <string.h>
-#include "sasl_anonymous.h"
-#include "amqpalloc.h"
-#include "xlogging.h"
+#include "azure_uamqp_c/sasl_anonymous.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_c_shared_utility/xlogging.h"
 
 typedef struct SASL_ANONYMOUS_INSTANCE_TAG
 {

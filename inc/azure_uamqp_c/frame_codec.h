@@ -4,9 +4,9 @@
 #ifndef FRAME_CODEC_H
 #define FRAME_CODEC_H
 
-#include "xio.h"
-#include "xlogging.h"
-#include "amqpvalue.h"
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_uamqp_c/amqpvalue.h"
 
 #ifdef __cplusplus
 extern "C" {

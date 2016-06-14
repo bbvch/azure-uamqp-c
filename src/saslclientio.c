@@ -8,14 +8,14 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "saslclientio.h"
-#include "xio.h"
-#include "amqpalloc.h"
-#include "frame_codec.h"
-#include "sasl_frame_codec.h"
-#include "amqp_definitions.h"
-#include "xlogging.h"
-#include "amqpvalue_to_string.h"
+#include "azure_uamqp_c/saslclientio.h"
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/sasl_frame_codec.h"
+#include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/amqpvalue_to_string.h"
 
 typedef enum IO_STATE_TAG
 {
@@ -1077,10 +1077,30 @@ void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io)
 	}
 }
 
-/* Codes_SRS_SASLCLIENTIO_03_001: [saslclientio_setoption does not support any options and shall always return non-zero value.]*/
-int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
+/* Codes_SRS_SASLCLIENTIO_03_001: [saslclientio_setoption shall forward options to underlying io.]*/
+int saslclientio_setoption(CONCRETE_IO_HANDLE sasl_client_io, const char* optionName, const void* value)
 {
-    return __LINE__;
+    int result;
+
+    if (sasl_client_io == NULL)
+    {
+        result = __LINE__;
+    }
+    else
+    {
+        SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance = (SASL_CLIENT_IO_INSTANCE*)sasl_client_io;
+
+        if (sasl_client_io_instance->underlying_io == NULL)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            result = xio_setoption(sasl_client_io_instance->underlying_io, optionName, value);
+        }
+    }
+
+    return result;
 }
 
 static const IO_INTERFACE_DESCRIPTION sasl_client_io_interface_description =

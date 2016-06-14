@@ -1,19 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#ifndef CONSOLELOGGER_H
-#define CONSOLELOGGER_H
+#ifndef AMQPVALUE_TO_STRING_H
+
+#include "azure_uamqp_c/amqpvalue.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#include "xlogging.h"
-
-	extern void consolelogger_log(unsigned int options, char* format, ...);
+	extern char* amqpvalue_to_string(AMQP_VALUE amqp_value);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CONSOLELOGGER_H */
+#endif /* AMQPVALUE_TO_STRING_H */

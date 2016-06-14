@@ -7,13 +7,13 @@
 #endif
 #include <stdio.h>
 #include <stdbool.h>
-#include "platform.h"
-#include "message_sender.h"
-#include "message.h"
-#include "messaging.h"
-#include "amqpalloc.h"
-#include "socketio.h"
-#include "consolelogger.h"
+#include "azure_c_shared_utility/platform.h"
+#include "azure_c_shared_utility/socketio.h"
+#include "azure_uamqp_c/message_sender.h"
+#include "azure_uamqp_c/message.h"
+#include "azure_uamqp_c/messaging.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/consolelogger.h"
 
 #if _WIN32
 #include "windows.h"

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#include "header_detect_io.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/header_detect_io.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 typedef enum IO_STATE_TAG
 {
@@ -358,11 +358,30 @@ void headerdetectio_dowork(CONCRETE_IO_HANDLE header_detect_io)
 	}
 }
 
-int headerdetectio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
+int headerdetectio_setoption(CONCRETE_IO_HANDLE header_detect_io, const char* optionName, const void* value)
 {
-    return __LINE__;
-}
+    int result;
 
+    if (header_detect_io == NULL)
+    {
+        result = __LINE__;
+    }
+    else
+    {
+        HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)header_detect_io;
+
+        if (header_detect_io_instance->underlying_io == NULL)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            result = xio_setoption(header_detect_io_instance->underlying_io, optionName, value);
+        }
+    }
+
+    return result;
+}
 
 static const IO_INTERFACE_DESCRIPTION header_detect_io_interface_description =
 {

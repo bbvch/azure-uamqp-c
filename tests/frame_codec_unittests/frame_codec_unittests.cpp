@@ -3,13 +3,13 @@
 
 #include <cstdint>
 #include <cstdbool>
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/list.h"
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "amqpvalue.h"
-#include "frame_codec.h"
-#include "xio.h"
-#include "list.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/frame_codec.h"
 
 #define TEST_DESCRIPTION_AMQP_VALUE		(AMQP_VALUE)0x4243
 #define TEST_LIST_HANDLE				(LIST_HANDLE)0x4246
@@ -168,7 +168,7 @@ BEGIN_TEST_SUITE(frame_codec_unittests)
 
 TEST_SUITE_INITIALIZE(suite_init)
 {
-    INITIALIZE_MEMORY_DEBUG(g_dllByDll);
+    TEST_INITIALIZE_MEMORY_DEBUG(g_dllByDll);
     g_testByTest = MicroMockCreateMutex();
     ASSERT_IS_NOT_NULL(g_testByTest);
 }
@@ -176,7 +176,7 @@ TEST_SUITE_INITIALIZE(suite_init)
 TEST_SUITE_CLEANUP(suite_cleanup)
 {
     MicroMockDestroyMutex(g_testByTest);
-    DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
+    TEST_DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
 TEST_FUNCTION_INITIALIZE(method_init)

@@ -4,9 +4,9 @@
 #ifndef MESSAGE_SENDER_H
 #define MESSAGE_SENDER_H
 
-#include "link.h"
-#include "message.h"
-#include "xlogging.h"
+#include "azure_uamqp_c/link.h"
+#include "azure_uamqp_c/message.h"
+#include "azure_c_shared_utility/xlogging.h"
 
 #ifdef __cplusplus
 extern "C" {
